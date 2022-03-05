@@ -1,0 +1,16 @@
+# JetBrains IDEs
+.idea/
+
+# Code::Blocks
+*.cbp
+
+# CMake
+CMakeFiles/
+cmake-build-debug/
+cmake_install.cmake
+CMakeCache.txt
+Makefile
+install_manifest.txt
+
+# macOS
+.DS_Store
