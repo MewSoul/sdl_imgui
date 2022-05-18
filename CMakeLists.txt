@@ -4,12 +4,15 @@ project(sdl_imgui)
 
 set(CMAKE_CXX_STANDARD 11)
 
+# flecs
 FetchContent_Declare(
         flecs
-        URL https://github.com/SanderMertens/flecs/archive/3e34ea3acc88b182cd3277fae13d1b596affe07d.tar.gz # master
+        GIT_REPOSITORY https://github.com/SanderMertens/flecs.git
+        GIT_TAG ae3a6c08b62369a5c446f3755b5e364d638e7133
 )
 FetchContent_MakeAvailable(flecs)
 
+# SDL2
 set(SDL_STATIC OFF CACHE BOOL "Static SDL2")
 set(SDL_SHARED ON CACHE BOOL "Shared SDL2")
 FetchContent_Declare(
@@ -18,9 +21,11 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(SDL2)
 
+# glad
 FetchContent_Declare(
         glad
-        URL https://github.com/Dav1dde/glad/archive/1ecd45775d96f35170458e6b148eb0708967e402.tar.gz # master
+        GIT_REPOSITORY https://github.com/Dav1dde/glad.git
+        GIT_TAG 1ecd45775d96f35170458e6b148eb0708967e402
 )
 FetchContent_MakeAvailable(glad)
 
