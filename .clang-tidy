@@ -1,0 +1,29 @@
+Checks: 'readability-identifier-naming,readability-identifier-naming.*'
+CheckOptions:
+  - { key: readability-identifier-naming.NamespaceCase,                     value: lower_case }
+
+  - { key: readability-identifier-naming.ClassCase,                         value: CamelCase }
+  - { key: readability-identifier-naming.MemberCase,                        value: CamelCase }
+  - { key: readability-identifier-naming.MemberPrefix,                      value: m }
+  - { key: readability-identifier-naming.StructCase,                        value: CamelCase }
+
+  - { key: readability-identifier-naming.FunctionCase,                      value: CamelCase }
+  - { key: readability-identifier-naming.PrivateMethodCase,                 value: CamelCase }
+  - { key: readability-identifier-naming.PrivateMethodPrefix,               value: i }
+
+  - { key: readability-identifier-naming.VariableCase,                      value: camelBack }
+
+  - { key: readability-identifier-naming.GlobalConstantCase,                value: CamelCase }
+  - { key: readability-identifier-naming.GlobalConstantPrefix,              value: g }
+
+  - { key: readability-identifier-naming.MacroDefinitionCase,               value: UPPER_CASE }
+
+  - { key: readability-identifier-naming.EnumCase,                          value: CamelCase }
+  - { key: readability-identifier-naming.EnumConstantCase,                  value: UPPER_CASE }
+
+  - { key: readability-identifier-naming.LocalPointerCase,                  value: CamelCase }
+  - { key: readability-identifier-naming.LocalPointerPrefix,                value: p }
+  - { key: readability-identifier-naming.PointerParameterCase,              value: CamelCase }
+  - { key: readability-identifier-naming.PointerParameterPrefix,            value: p }
+  - { key: readability-identifier-naming.ConstantPointerParameterCase,      value: CamelCase }
+  - { key: readability-identifier-naming.ConstantPointerParameterPrefix,    value: p }
