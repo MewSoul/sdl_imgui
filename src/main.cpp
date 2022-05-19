@@ -10,11 +10,8 @@
 #define SCREEN_WIDTH 1080
 #define SCREEN_HEIGHT 720
 
-int main() {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        std::cout << "Failed to initialize SDL2: " << SDL_GetError() << std::endl;
-        return EXIT_FAILURE;
-    }
+bool InitSDL() {
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) return false;
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
@@ -23,13 +20,13 @@ int main() {
     SDL_GL_SetAttribute(
             SDL_GL_CONTEXT_PROFILE_MASK,
             SDL_GL_CONTEXT_PROFILE_CORE
-            );
+    );
 
 #ifdef __APPLE__
     SDL_GL_SetAttribute(
             SDL_GL_CONTEXT_FLAGS,
             SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG
-            );
+    );
 #else
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
 #endif
@@ -37,25 +34,53 @@ int main() {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 
-    SDL_Window* pWindow = SDL_CreateWindow(
-            "hello_sdl2",
+    return true;
+}
+
+bool InitGame(SDL_Window **pWindow, SDL_GLContext pContext) {
+    if (!InitSDL()) {
+        std::cout << "Failed to initialize SDL2: " << SDL_GetError() << std::endl;
+        return false;
+    }
+
+    *pWindow = SDL_CreateWindow(
+            "sdl_window",
             SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
             SCREEN_WIDTH, SCREEN_HEIGHT,
             SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
-            );
+    );
 
-    if (pWindow == nullptr) {
-        std::cout << "Failed to create window: " << SDL_GetError << std::endl;
-        return EXIT_FAILURE;
+    if (*pWindow == nullptr) {
+        std::cout << "Failed to create window: " << &SDL_GetError << std::endl;
+        return false;
     }
 
-    void *pContext = SDL_GL_CreateContext(pWindow);
-    SDL_GL_MakeCurrent(pWindow, pContext);
+    pContext = SDL_GL_CreateContext(*pWindow);
+    SDL_GL_MakeCurrent(*pWindow, pContext);
     gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress);
 
     ImGui::CreateContext();
-    ImGui_ImplSDL2_InitForOpenGL(pWindow, pContext);
+    ImGui_ImplSDL2_InitForOpenGL(*pWindow, pContext);
     ImGui_ImplOpenGL3_Init();
+
+    return true;
+}
+
+void ClearResources(SDL_Window *pWindow, SDL_GLContext pContext) {
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+
+    SDL_GL_DeleteContext(pContext);
+    SDL_DestroyWindow(pWindow);
+    SDL_Quit();
+}
+
+int main() {
+    SDL_Window *pWindow;
+    SDL_GLContext pContext;
+
+    if (!InitGame(&pWindow, &pContext)) return EXIT_FAILURE;
 
     flecs::world ecs;
 
@@ -87,13 +112,6 @@ int main() {
         SDL_GL_SwapWindow(pWindow);
     }
 
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
-
-    SDL_GL_DeleteContext(pContext);
-    SDL_DestroyWindow(pWindow);
-    SDL_Quit();
-
+    ClearResources(pWindow, pContext);
     return 0;
 }
