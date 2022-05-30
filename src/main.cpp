@@ -7,8 +7,62 @@
 #include <imgui_impl_opengl3.h>
 #include <SDL.h>
 
+#include "Input.h"
+#include "Pipeline.h"
+#include "Renderer.h"
+
 #define SCREEN_WIDTH 1080
 #define SCREEN_HEIGHT 720
+
+bool InitSDL();
+void ClearSDL(SDL_Window **pWindow, void **pContext);
+void InitImGui(SDL_Window **pWindow, void **pContext);
+void ClearImGui();
+
+int main() {
+    SDL_Window *pWindow;
+    SDL_GLContext pContext;
+
+    if (!InitSDL()) {
+        std::cout << "Failed to initialize SDL2: " << SDL_GetError() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    pWindow = SDL_CreateWindow(
+            "sdl_window",
+            SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+            SCREEN_WIDTH, SCREEN_HEIGHT,
+            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
+    );
+
+    if (pWindow == nullptr) {
+        std::cout << "Failed to create window: " << SDL_GetError() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    pContext = SDL_GL_CreateContext(pWindow);
+    SDL_GL_MakeCurrent(pWindow, pContext);
+    gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress);
+
+    InitImGui(&pWindow, &pContext);
+
+    ecs_world_t *pWorld = ecs_init();
+    Pipeline pipeline(pWorld);
+
+    Input::Init(pWorld, pipeline);
+    Renderer::Init(pWorld, pipeline, pWindow);
+
+    ecs_set_pipeline(pWorld, pipeline.GetPipeline());
+
+    while (ecs_progress(pWorld, 0.0)) {
+    }
+
+    ecs_fini(pWorld);
+    ClearImGui();
+    ClearSDL(&pWindow, &pContext);
+
+    return EXIT_SUCCESS;
+}
 
 bool InitSDL() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) return false;
@@ -37,81 +91,20 @@ bool InitSDL() {
     return true;
 }
 
-bool InitGame(SDL_Window **pWindow, SDL_GLContext pContext) {
-    if (!InitSDL()) {
-        std::cout << "Failed to initialize SDL2: " << SDL_GetError() << std::endl;
-        return false;
-    }
-
-    *pWindow = SDL_CreateWindow(
-            "sdl_window",
-            SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-            SCREEN_WIDTH, SCREEN_HEIGHT,
-            SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL
-    );
-
-    if (*pWindow == nullptr) {
-        std::cout << "Failed to create window: " << &SDL_GetError << std::endl;
-        return false;
-    }
-
-    pContext = SDL_GL_CreateContext(*pWindow);
-    SDL_GL_MakeCurrent(*pWindow, pContext);
-    gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress);
-
-    ImGui::CreateContext();
-    ImGui_ImplSDL2_InitForOpenGL(*pWindow, pContext);
-    ImGui_ImplOpenGL3_Init();
-
-    return true;
-}
-
-void ClearResources(SDL_Window *pWindow, SDL_GLContext pContext) {
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
-
-    SDL_GL_DeleteContext(pContext);
-    SDL_DestroyWindow(pWindow);
+void ClearSDL(SDL_Window **pWindow, SDL_GLContext *pContext) {
+    SDL_GL_DeleteContext(*pContext);
+    SDL_DestroyWindow(*pWindow);
     SDL_Quit();
 }
 
-int main() {
-    SDL_Window *pWindow;
-    SDL_GLContext pContext;
+void InitImGui(SDL_Window **pWindow, SDL_GLContext *pContext) {
+    ImGui::CreateContext();
+    ImGui_ImplSDL2_InitForOpenGL(*pWindow, *pContext);
+    ImGui_ImplOpenGL3_Init();
+}
 
-    if (!InitGame(&pWindow, &pContext)) return EXIT_FAILURE;
-
-    flecs::world ecs;
-
-    while (true) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-        SDL_Event event;
-
-        while (SDL_PollEvent(&event)) {
-            ImGui_ImplSDL2_ProcessEvent(&event);
-
-            if (event.key.keysym.sym == SDLK_ESCAPE) {
-                ecs.quit();
-            }
-        }
-
-        if (!ecs.progress())
-            break;
-
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplSDL2_NewFrame();
-        ImGui::NewFrame();
-
-        ImGui::ShowDemoWindow();
-
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        SDL_GL_SwapWindow(pWindow);
-    }
-
-    ClearResources(pWindow, pContext);
-    return 0;
+void ClearImGui() {
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
 }
